@@ -1,30 +1,36 @@
-from flask import Flask, request, jsonify
-import pickle
+from flask import Flask, request, jsonify, render_template
+import tensorflow as tf
+import cv2
 import numpy as np
-from PIL import Image
 import io
 
-# Initialize Flask app
 app = Flask(__name__)
 
-# Load the pre-trained AI model
-MODEL_PATH = "model.pkl"  # Replace with your model's .pkl file path
-with open(MODEL_PATH, 'rb') as file:
-    model = pickle.load(file)
+# Load the pre-trained AI model from TensorFlow
+MODEL_PATH = "model.h5"  # Path to your TensorFlow model (e.g., .h5 format)
+model = tf.keras.models.load_model(MODEL_PATH)
 
-# Define a function to preprocess the image
+# Preprocessing function using OpenCV and TensorFlow
 def preprocess_image(image_bytes):
-    # Open the image
-    image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
-    # Resize the image to the input size expected by your model
-    image = image.resize((224, 224))  # Example size, adjust as needed
-    # Convert the image to a NumPy array
-    image_array = np.array(image)
-    # Normalize the image (e.g., scale pixel values to 0-1 if required)
-    image_array = image_array / 255.0
-    # Reshape for model input (add batch dimension if necessary)
-    image_array = np.expand_dims(image_array, axis=0)
-    return image_array
+    # Convert image bytes to a NumPy array (using OpenCV)
+    image_array = np.frombuffer(image_bytes, np.uint8)
+    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+
+    # Resize the image to match the model input size (224x224 for many models)
+    image = cv2.resize(image, (224, 224))
+
+    # Normalize the pixel values (0-255 to 0.0-1.0)
+    image = image / 255.0
+
+    # Convert to the shape expected by TensorFlow (batch_size, height, width, channels)
+    image = np.expand_dims(image, axis=0)
+    
+    return image
+
+# Route to serve the main page
+@app.route('/')
+def index():
+    return render_template('aidhanraksak.html')  # Serves 'templates/index.html'
 
 # Define the endpoint for image upload
 @app.route('/predict', methods=['POST'])

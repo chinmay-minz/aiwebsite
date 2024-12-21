@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from fenlask import Flask, request, jsonify, render_template
 import tensorflow as tf
 import cv2
 import numpy as np
@@ -7,7 +7,7 @@ import io
 app = Flask(__name__)
 
 # Load the pre-trained AI model from TensorFlow
-MODEL_PATH = "model.h5"  # Path to your TensorFlow model (e.g., .h5 format)
+MODEL_PATH = "counterfeitmodel.h5"  # Path to your TensorFlow model (e.g., .h5 format)
 model = tf.keras.models.load_model(MODEL_PATH)
 
 # Preprocessing function using OpenCV and TensorFlow
